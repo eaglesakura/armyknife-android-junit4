@@ -6,6 +6,7 @@ import androidx.annotation.UiThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
@@ -13,10 +14,51 @@ import androidx.lifecycle.SavedStateViewModelFactory
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProviders
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.isAccessible
+
+/**
+ * await Activity.onCreate() message.
+ *
+ * e.g.)
+ * fun testFunction() = compatibleBlockingTest {
+ *      val activity = makeActivity().awaitOnCreate()
+ * }
+ */
+suspend fun <T : FragmentActivity> T.awaitOnCreate(): T {
+    withContext(Dispatchers.Main) {
+        withTimeout(TimeUnit.SECONDS.toMillis(1)) {
+            while (!lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
+                delay(1)
+            }
+        }
+    }
+    return this
+}
+
+/**
+ * await Fragment.onCreate() message.
+ *
+ * e.g.)
+ * fun testFunction() = compatibleBlockingTest {
+ *      val fragment = makeFragment(ExampleFragment::class).awaitOnCreate()
+ * }
+ */
+suspend fun <T : Fragment> T.awaitOnCreate(): T {
+    withContext(Dispatchers.Main) {
+        withTimeout(TimeUnit.SECONDS.toMillis(1)) {
+            while (!lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
+                delay(1)
+            }
+        }
+    }
+    return this
+}
 
 /**
  * Make testing ViewModel without View.
