@@ -9,6 +9,7 @@ import androidx.test.core.app.ActivityScenario
 import com.eaglesakura.armyknife.android.junit4.TestDispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.reflect.KClass
@@ -36,6 +37,13 @@ suspend fun <A : FragmentActivity, F : Fragment> makeFragment(
             GlobalScope.launch { channel.send(fragment) }
         }
         channel.receive()
+    }.also { fragment ->
+        // await attach to Activity.
+        withContext(TestDispatchers.Main) {
+            while (fragment.activity == null) {
+                delay(1)
+            }
+        }
     }
 }
 
