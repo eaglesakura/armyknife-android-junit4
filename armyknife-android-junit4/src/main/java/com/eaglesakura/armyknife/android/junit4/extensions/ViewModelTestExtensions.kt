@@ -186,11 +186,14 @@ fun ViewModel.activeAllLiveDataForTest(lifecycleOwner: LifecycleOwner? = null) {
         prop.isAccessible = true
         (prop.getter.call(self) as? LiveData<*>)?.also { liveData ->
             Log.d("ViewModelTest", "${self.javaClass.simpleName}.${prop.name} is active")
+            liveData.removeObserver(dummyViewModelObserver)
             if (lifecycleOwner != null) {
-                liveData.observe(lifecycleOwner, Observer { })
+                liveData.observe(lifecycleOwner, dummyViewModelObserver)
             } else {
-                liveData.observeForever { }
+                liveData.observeForever(dummyViewModelObserver)
             }
         }
     }
 }
+
+private val dummyViewModelObserver = Observer<Any?> { }
