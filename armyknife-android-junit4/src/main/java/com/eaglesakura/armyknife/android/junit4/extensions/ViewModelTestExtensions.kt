@@ -1,5 +1,8 @@
+@file:Suppress("unused")
+
 package com.eaglesakura.armyknife.android.junit4.extensions
 
+import android.app.Application
 import android.util.Log
 import androidx.annotation.IdRes
 import androidx.annotation.UiThread
@@ -103,7 +106,8 @@ suspend fun <VM : ViewModel> makeActivitySavedStateViewModel(
     clazz: KClass<VM>
 ): VM {
     return makeActivityViewModel { activity ->
-        ViewModelProviders.of(activity, SavedStateViewModelFactory(activity)).get(clazz.java)
+        ViewModelProviders.of(activity, SavedStateViewModelFactory(activity.application, activity))
+            .get(clazz.java)
     }
 }
 
@@ -162,7 +166,13 @@ suspend fun <VM : ViewModel> makeFragmentViewModel(clazz: KClass<VM>): VM {
  */
 suspend fun <VM : ViewModel> makeFragmentSavedStateViewModel(clazz: KClass<VM>): VM {
     return makeFragmentViewModel { fragment ->
-        ViewModelProviders.of(fragment, SavedStateViewModelFactory(fragment)).get(clazz.java)
+        ViewModelProviders.of(
+            fragment,
+            SavedStateViewModelFactory(
+                fragment.requireContext().applicationContext as Application,
+                fragment
+            )
+        ).get(clazz.java)
     }
 }
 
