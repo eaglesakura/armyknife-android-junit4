@@ -181,16 +181,29 @@ suspend fun <VM : ViewModel> makeFragmentSavedStateViewModel(clazz: KClass<VM>):
  */
 @UiThread
 fun ViewModel.activeAllLiveDataForTest(lifecycleOwner: LifecycleOwner? = null) {
+    return activeAllLiveDataForTest(lifecycleOwner) { true }
+}
+
+/**
+ * ViewModel.LiveData<*> field are active.
+ */
+@UiThread
+fun ViewModel.activeAllLiveDataForTest(
+    lifecycleOwner: LifecycleOwner? = null,
+    filter: (liveData: LiveData<*>) -> Boolean
+) {
     val self = this
     self.javaClass.kotlin.declaredMemberProperties.forEach { prop ->
         prop.isAccessible = true
         (prop.getter.call(self) as? LiveData<*>)?.also { liveData ->
-            Log.d("ViewModelTest", "${self.javaClass.simpleName}.${prop.name} is active")
-            liveData.removeObserver(dummyViewModelObserver)
-            if (lifecycleOwner != null) {
-                liveData.observe(lifecycleOwner, dummyViewModelObserver)
-            } else {
-                liveData.observeForever(dummyViewModelObserver)
+            if (filter(liveData)) {
+                Log.d("ViewModelTest", "${self.javaClass.simpleName}.${prop.name} is active")
+                liveData.removeObserver(dummyViewModelObserver)
+                if (lifecycleOwner != null) {
+                    liveData.observe(lifecycleOwner, dummyViewModelObserver)
+                } else {
+                    liveData.observeForever(dummyViewModelObserver)
+                }
             }
         }
     }
