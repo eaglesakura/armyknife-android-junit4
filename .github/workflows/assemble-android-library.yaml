@@ -74,8 +74,3 @@ jobs:
           echo '${{secrets.MAVENCENTRAL_PRIVATE_KEY}}' | base64 -d > .github/sign/sign.gpg
           ./gradlew publish \
               --stacktrace
-      - name: "kotlin / release / mavencentral"
-        if: contains(github.ref, 'tags/v')
-        run: |
-          ./gradlew closeAndReleaseRepository \
-              --stacktrace
