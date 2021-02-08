@@ -1,0 +1,81 @@
+####################################################################################
+# Repository > Settings > Secrets:
+# Bintray
+#   MAVENCENTRAL_USERNAME     : maven user access token/username.
+#   MAVENCENTRAL_PASSWORD     : maven user access token/password.
+#   MAVENCENTRAL_PRIVATE_KEY  : base64 encoded private key.
+#   MAVENCENTRAL_GPG_KEYID    : Signing keyId.
+#   MAVENCENTRAL_GPG_PASSWORD : Signing password.
+####################################################################################
+name: assemble Android library aar
+on:
+  - push
+jobs:
+  assemble-android-library-artifacts:
+    runs-on: ubuntu-20.04
+    if: contains(github.event.head_commit.message, '[ci skip]') == false
+    env:
+      _JAVA_OPTIONS: "-Xmx4g -Dfile.encoding=UTF-8"
+      TZ: Asia/Tokyo
+      MAVENCENTRAL_USERNAME: ${{secrets.MAVENCENTRAL_USERNAME}}
+      MAVENCENTRAL_PASSWORD: ${{secrets.MAVENCENTRAL_PASSWORD}}
+      MAVENCENTRAL_GPG_KEYID: ${{secrets.MAVENCENTRAL_GPG_KEYID}}
+      MAVENCENTRAL_GPG_PASSWORD: ${{secrets.MAVENCENTRAL_GPG_PASSWORD}}
+    steps:
+      - uses: actions/checkout@v2.0.0
+      - name: "cache / gradle"
+        uses: actions/cache@v1
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}-${{ hashFiles('**/*.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: "environments / java"
+        uses: actions/setup-java@v1
+        with:
+          java-version: "11"
+      - name: "environments / android / sdk"
+        uses: malinskiy/action-android/install-sdk@release/0.1.0
+      - name: "environments / android / PATH"
+        run: |
+          export EXTRA_PATH=$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/ndk-bundle:$PATH
+          echo "path=$EXTRA_PATH" >> $GITHUB_ENV
+      - name: "environments"
+        run: |
+          echo "GITHUB_REF=$GITHUB_REF"
+          echo "PWD=$PWD"
+          echo "PATH=$path"
+          echo "java `java -version`: `which java`"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "sdkmanager=`which sdkmanager`"
+          gradle -v
+          ls -al
+      - name: "android / test / format"
+        run: |
+          ./gradlew format
+          if [ "`git diff | grep '.kt'`" != "" ]; then
+            echo "kotlin format error"
+            echo "run -> ./gradlew format"
+            exit 1
+          fi
+      - name: "android / test / codes"
+        run: |
+          ./gradlew \
+            testDebugUnitTest \
+            assembleRelease
+      - name: "android / publish / test-results"
+        if: ${{ always() }}
+        uses: mikepenz/action-junit-report@v1
+        with:
+          report_paths: '**/build/test-results/**/TEST-*.xml'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "kotlin / publish / mavencentral"
+        run: |
+          echo '${{secrets.MAVENCENTRAL_PRIVATE_KEY}}' | base64 -d > .github/sign/sign.gpg
+          ./gradlew publish \
+              --stacktrace
+      - name: "kotlin / release / mavencentral"
+        if: contains(github.ref, 'tags/v')
+        run: |
+          ./gradlew closeAndReleaseRepository \
+              --stacktrace

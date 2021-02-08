@@ -7,12 +7,12 @@ import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.transaction
 import androidx.test.core.app.ActivityScenario
 import com.eaglesakura.armyknife.android.junit4.TestDispatchers
+import kotlin.reflect.KClass
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.reflect.KClass
 
 /**
  * Make testing fragment.
@@ -66,9 +66,12 @@ suspend fun <A : FragmentActivity, F : Fragment> makeFragment(
     fragmentClass: KClass<F>
 ): F {
     @Suppress("MoveLambdaOutsideParentheses")
-    return makeFragment(activityClass, 0x00, {
-        fragmentClass.java.newInstance()
-    })
+    return makeFragment(
+        activityClass, 0x00,
+        {
+            fragmentClass.java.newInstance()
+        }
+    )
 }
 
 /**
@@ -79,9 +82,12 @@ suspend fun <A : FragmentActivity, F : Fragment> makeFragment(
     fragmentClass: KClass<F>
 ): F {
     @Suppress("MoveLambdaOutsideParentheses")
-    return makeFragment(activityClass, 0x00, {
-        fragmentClass.java.newInstance()
-    })
+    return makeFragment(
+        activityClass, 0x00,
+        {
+            fragmentClass.java.newInstance()
+        }
+    )
 }
 
 /**

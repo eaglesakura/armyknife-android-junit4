@@ -5,11 +5,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentActivity
 import androidx.test.core.app.ActivityScenario
 import com.eaglesakura.armyknife.android.junit4.TestDispatchers
+import kotlin.reflect.KClass
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.reflect.KClass
 
 /**
  * Make testing activity.
