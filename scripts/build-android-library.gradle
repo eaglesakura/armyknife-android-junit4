@@ -10,7 +10,7 @@ version = artifact.deploy_version
 
 android {
     compileSdkVersion versions.android_targetSdk
-    buildToolsVersion versions.android_buildTools
+    // buildToolsVersion versions.android_buildTools
 
     // for *.java options
     compileOptions {
