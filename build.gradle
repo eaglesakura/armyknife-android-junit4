@@ -5,8 +5,8 @@ buildscript {
                 kotlin_coroutines : "1.4.1",
                 android_plugin    : "4.1.2",
                 android_minSdk    : 21,
-                android_targetSdk : 30,
-                android_buildTools: "30.0.3",
+                android_targetSdk : 31,
+                android_buildTools: "31.0.0",
         ]
         artifact = [
                 deploy_version  : "1.0-SNAPSHOT",
